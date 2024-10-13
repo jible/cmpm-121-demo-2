@@ -93,3 +93,14 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+
+.canvas {
+  background-color: #f9f9f9;
+  border: 5px solid;
+  border-color: #0e7224;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  z-index: 5;
+}
