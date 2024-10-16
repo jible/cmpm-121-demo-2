@@ -15,12 +15,23 @@ canvas.height = 256;
 app.appendChild(canvas);
 
 
-
+// Fires every time the canvas needs to be redrawn
 const canvasUpdate: Event = new Event("drawing-changed");
 
+// Unique interfaces for this project
+/*
+Explanation: everytime the person puts their mouse down it starts an action (current action). 
+This action is added to the end of the actions array
+When user releases their mouse, it makes a new current action and the old one is just part of the action list
 
-    
+Each action is made of a line from one point to another
 
+When user undos, it pops the end of the action array to the undone array
+when user redos, it pops end of undone array to the actions array
+
+redo array cleared when player draws a new line
+all arrays are cleared when canvas cleared.
+*/
 
 
 interface point{
@@ -36,6 +47,9 @@ let undoneActions: line[][] = [];
 
 let currentAction: line[] = [];
 actions.push(currentAction);
+
+const cursor = { active: false, x: 0, y: 0 };
+const ctx = canvas.getContext("2d");
 
 
 function undo(): void{
@@ -68,15 +82,7 @@ function drawLines(): void{
     }
 }
 
-
-addEventListener("mousemove", (event)=>{
-    event
-});
-
-
-const cursor = { active: false, x: 0, y: 0 };
-const ctx = canvas.getContext("2d");
-
+// Triggers for drawing and updating canvas
 canvas.addEventListener("mousedown", (e) => {
     cursor.active = true;
     cursor.x = e.offsetX;
@@ -107,13 +113,12 @@ canvas.addEventListener("mousemove", (e) => {
     }
 });
 
-
-
-
 canvas.addEventListener("drawing-changed", function(){
     drawLines();
 });
 
+
+// Buttons
 const clearButton = document.createElement("button");
 clearButton.innerHTML = "clear";
 document.body.append(clearButton);
