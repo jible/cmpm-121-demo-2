@@ -56,6 +56,7 @@ function redo(): void{
 
 function drawLines(): void{
     if (ctx){
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (let currentAction = 0; currentAction < actions.length; currentAction++){
             for (let currentLine = 0; currentLine < actions[currentAction].length; currentLine++){
                 ctx.beginPath();
@@ -87,6 +88,8 @@ canvas.addEventListener("mouseup", () => {
     cursor.active = false;
     if (currentAction.length == 0){
         actions.pop();
+    } else {
+        currentAction = [];
     }
 
 });
