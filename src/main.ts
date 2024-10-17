@@ -42,28 +42,49 @@ interface line{
     start: point;
     end: point;
 }
-let actions :line[][]= [];
-let undoneActions: line[][] = [];
+class drag{
+    lines: line[] = []
 
-let currentAction: line[] = [];
-actions.push(currentAction);
+
+
+    addLine(newLine: line){
+        this.lines.push(newLine);
+    }
+    drawLines(ctx: CanvasRenderingContext2D){
+        for (const segments of this.lines){
+            ctx.beginPath();
+            ctx.moveTo(segments.start.x, segments.start.y);
+            ctx.lineTo(segments.end.x, segments.end.y);
+            ctx.stroke();
+        }
+    }
+
+
+}
+
+
+let drags :drag[]= [];
+let undoneDrags: drag[] = [];
+
+let currentDrag: drag = new drag;
+drags.push(currentDrag);
 
 const cursor = { active: false, x: 0, y: 0 };
 const ctx = canvas.getContext("2d");
 
 
 function undo(): void{
-    const undoneAction:line[]|undefined  = actions.pop()
-    if (undoneAction){
-        undoneActions.push(undoneAction)
+    const undoneDrag:drag|undefined  = drags.pop()
+    if (undoneDrag){
+        undoneDrags.push(undoneDrag);
     }
     canvas.dispatchEvent(canvasUpdate);
     
 }
 function redo(): void{
-    const redoneAction: line[]|undefined = undoneActions.pop();
-    if (redoneAction){
-        actions.push(redoneAction)
+    const redoneDrag: drag|undefined = undoneDrags.pop();
+    if (redoneDrag){
+        drags.push(redoneDrag);
     }
     canvas.dispatchEvent(canvasUpdate);
 }
@@ -71,31 +92,27 @@ function redo(): void{
 function drawLines(): void{
     if (ctx){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let currentAction = 0; currentAction < actions.length; currentAction++){
-            for (let currentLine = 0; currentLine < actions[currentAction].length; currentLine++){
-                ctx.beginPath();
-                ctx.moveTo(actions[currentAction][currentLine].start.x, actions[currentAction][currentLine].start.y);
-                ctx.lineTo(actions[currentAction][currentLine].end.x, actions[currentAction][currentLine].end.y);
-                ctx.stroke();
-            }
+        for ( const i of drags){
+            i.drawLines(ctx);
         }
     }
 }
 
 // Triggers for drawing and updating canvas
 canvas.addEventListener("mousedown", (e) => {
+    console.log(drags);
     cursor.active = true;
     cursor.x = e.offsetX;
     cursor.y = e.offsetY;
-    actions.push(currentAction);
+    drags.push(currentDrag);
 });
 
 canvas.addEventListener("mouseup", () => {
     cursor.active = false;
-    if (currentAction.length == 0){
-        actions.pop();
+    if (currentDrag.lines.length == 0){
+        drags.pop();
     } else {
-        currentAction = [];
+        currentDrag = new drag;
     }
 
 });
@@ -105,10 +122,10 @@ canvas.addEventListener("mousemove", (e) => {
         const start: point = {x: cursor.x, y: cursor.y};
         const end: point = {x: e.offsetX, y: e.offsetY};
         const newLine: line = {start, end};
-        currentAction.push(newLine);
+        currentDrag.addLine(newLine);
         cursor.x = e.offsetX;
         cursor.y = e.offsetY;
-        undoneActions.length = 0;
+        undoneDrags.length = 0;
         canvas.dispatchEvent(canvasUpdate);
     }
 });
@@ -127,8 +144,8 @@ clearButton.addEventListener("click", () => {
     if (ctx){
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
-    actions = [];
-    undoneActions = [];
+    drags = [];
+    undoneDrags = [];
 });
 
 const undoButton = document.createElement("button");
