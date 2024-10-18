@@ -18,21 +18,9 @@ app.appendChild(canvas);
 // Fires every time the canvas needs to be redrawn
 const canvasUpdate: Event = new Event("drawing-changed");
 
-// Unique interfaces for this project
-/*
-Explanation: everytime the person puts their mouse down it starts an action (current action). 
-This action is added to the end of the actions array
-When user releases their mouse, it makes a new current action and the old one is just part of the action list
 
-Each action is made of a line from one point to another
-
-When user undos, it pops the end of the action array to the undone array
-when user redos, it pops end of undone array to the actions array
-
-redo array cleared when player draws a new line
-all arrays are cleared when canvas cleared.
-*/
-
+let currentColor: string = '#000000'; // Default color
+let currentThickness :number = 1;
 
 interface point{
     x: number;
@@ -44,7 +32,8 @@ interface line{
 }
 class drag{
     lines: line[] = []
-
+    thickness: number = currentThickness;
+    color: string = currentColor;
 
 
     addLine(newLine: line){
@@ -53,13 +42,14 @@ class drag{
     drawLines(ctx: CanvasRenderingContext2D){
         for (const segments of this.lines){
             ctx.beginPath();
+            
             ctx.moveTo(segments.start.x, segments.start.y);
             ctx.lineTo(segments.end.x, segments.end.y);
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = this.thickness;
             ctx.stroke();
         }
     }
-
-
 }
 
 
@@ -164,3 +154,67 @@ document.body.append(redoButton);
 redoButton.addEventListener("click", () => {
     redo();
 });
+
+
+
+
+// Thank you brace
+// Function to create and insert a color picker
+function addColorPicker() {
+    const app = document.getElementById('app'); // Assuming a container element with id 'app'
+    if (app) {
+      // Create the color picker input element
+      const colorPicker = document.createElement('input');
+      colorPicker.type = 'color';
+      colorPicker.id = 'colorPicker';
+      colorPicker.value = '#000000'; // Default color: black
+  
+      // Handle color changes
+      colorPicker.addEventListener('input', (event) => {
+        const target = event.target as HTMLInputElement;
+        currentColor = target.value;
+        currentDrag.color =currentColor;
+        // Update line color or apply it wherever necessary
+      });
+  
+      // Insert the color picker into the DOM
+      app.appendChild(colorPicker);
+    }
+  }
+  
+  // Call the function to execute when the script runs
+  addColorPicker();
+  
+  // Variable to keep track of the current color
+
+  // Initial setup function for the slider
+function addThicknessSlider() {
+    const app = document.getElementById('app');
+    if (app) {
+      // Create the slider
+      const thicknessSlider = document.createElement('input');
+      thicknessSlider.type = 'range';
+      thicknessSlider.min = '1';    // Minimum thickness
+      thicknessSlider.max = '10';   // Maximum thickness (can adjust as needed)
+      thicknessSlider.value = '1';  // Default value
+      thicknessSlider.id = 'thicknessSlider';
+  
+      // Label for slider
+      const label = document.createElement('label');
+      label.innerHTML = 'Line Thickness: ';
+      label.appendChild(thicknessSlider);
+  
+      // Event listener to handle slider input
+      thicknessSlider.addEventListener('input', (event) => {
+        const target = event.target as HTMLInputElement;
+        currentThickness = +target.value; // Convert string to number
+        console.log('Line thickness set to:', currentThickness); // Feedback for verification
+      });
+  
+      // Append slider and label to the DOM
+      app.appendChild(label);
+    }
+  }
+  
+  // Call the function to execute when the script runs
+  addThicknessSlider();
