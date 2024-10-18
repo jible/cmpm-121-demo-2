@@ -209,6 +209,7 @@ function addThicknessSlider() {
         const target = event.target as HTMLInputElement;
         currentThickness = +target.value; // Convert string to number
         console.log('Line thickness set to:', currentThickness); // Feedback for verification
+        currentDrag.thickness = currentThickness;
       });
   
       // Append slider and label to the DOM
