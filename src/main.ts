@@ -15,6 +15,7 @@ app.appendChild(canvas);
 
 // Fires every time the canvas needs to be redrawn
 const canvasUpdate: Event = new Event("drawing-changed");
+const mouseMoved: Event = new Event("tool-moved");
 
 let currentColor: string = "#000000"; // Default color
 let currentThickness: number = 1;
@@ -58,9 +59,15 @@ let currentDrag: drag = {
   color: currentColor,
 };
 drags.push(currentDrag);
-
-const cursor = { active: false, x: 0, y: 0 };
 const ctx = canvas.getContext("2d");
+const cursor = {
+  active: false,
+  x: 0,
+  y: 0,
+  execute(ctx: CanvasRenderingContext2D) {
+    ctx.fillText("*", this.x - 8, this.y + 16);
+  },
+};
 
 function undo(): void {
   const undoneDrag: drag | undefined = drags.pop();
@@ -108,6 +115,7 @@ canvas.addEventListener("mouseup", () => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
+  canvas.dispatchEvent(mouseMoved);
   if (cursor.active && ctx) {
     const start: point = { x: cursor.x, y: cursor.y };
     const end: point = { x: e.offsetX, y: e.offsetY };
@@ -117,6 +125,7 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.y = e.offsetY;
     undoneDrags.length = 0;
     canvas.dispatchEvent(canvasUpdate);
+    cursor.execute(ctx);
   }
 });
 
