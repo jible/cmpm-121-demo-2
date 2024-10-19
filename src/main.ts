@@ -13,13 +13,43 @@ canvas.width = 256;
 canvas.height = 256;
 app.appendChild(canvas);
 
-// Fires every time the canvas needs to be redrawn
+// Events
 const canvasUpdate: Event = new Event("drawing-changed");
-const mouseMoved: Event = new Event("tool-moved");
+const toolChanged: Event = new Event("tool-changed");
 
+// tool settings
 let currentColor: string = "#000000"; // Default color
 let currentThickness: number = 1;
 
+const cursor = {
+  active: false,
+  x: 0,
+  y: 0,
+};
+
+// Setting up cursor and preview
+const toolPreview = {
+  active: false,
+  x: 0,
+  y: 0,
+  updatePosition(x?: number, y?: number) {
+    if (x) {
+      this.x = x;
+    }
+    if (y) {
+      this.y = y;
+    }
+  },
+  draw(ctx: CanvasRenderingContext2D) {
+    if (this.active) {
+      ctx.fillStyle = currentColor;
+      ctx.font = `32px monospace`;
+      ctx.fillText("*", this.x - 8, this.y + 16);
+    }
+  },
+};
+
+// canvas data type and functions
 interface point {
   x: number;
   y: number;
@@ -28,17 +58,14 @@ interface line {
   start: point;
   end: point;
 }
-
 interface drag {
   lines: line[];
   thickness: number;
   color: string;
 }
-
 function addLine(arg: drag, newLine: line) {
   arg.lines.push(newLine);
 }
-
 function drawDrag(arg: drag, ctx: CanvasRenderingContext2D) {
   for (const segments of arg.lines) {
     ctx.beginPath();
@@ -60,14 +87,6 @@ let currentDrag: drag = {
 };
 drags.push(currentDrag);
 const ctx = canvas.getContext("2d");
-const cursor = {
-  active: false,
-  x: 0,
-  y: 0,
-  execute(ctx: CanvasRenderingContext2D) {
-    ctx.fillText("*", this.x - 8, this.y + 16);
-  },
-};
 
 function undo(): void {
   const undoneDrag: drag | undefined = drags.pop();
@@ -83,16 +102,32 @@ function redo(): void {
   }
   canvas.dispatchEvent(canvasUpdate);
 }
-function drawLines(): void {
+function drawCanvas(): void {
   if (ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (const i of drags) {
       drawDrag(i, ctx);
     }
+    toolPreview.draw(ctx);
   }
 }
 
 // Triggers for drawing and updating canvas
+canvas.addEventListener("tool-changed", function () {
+  drawCanvas();
+});
+
+canvas.addEventListener("mouseout", (e) => {
+  toolPreview.active = false;
+  canvas.dispatchEvent(toolChanged);
+});
+
+canvas.addEventListener("mouseenter", (e) => {
+  toolPreview.active = true;
+  toolPreview.updatePosition(e.offsetX, e.offsetY);
+  canvas.dispatchEvent(toolChanged);
+});
+
 canvas.addEventListener("mousedown", (e) => {
   console.log(drags);
   cursor.active = true;
@@ -115,7 +150,6 @@ canvas.addEventListener("mouseup", () => {
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  canvas.dispatchEvent(mouseMoved);
   if (cursor.active && ctx) {
     const start: point = { x: cursor.x, y: cursor.y };
     const end: point = { x: e.offsetX, y: e.offsetY };
@@ -125,12 +159,13 @@ canvas.addEventListener("mousemove", (e) => {
     cursor.y = e.offsetY;
     undoneDrags.length = 0;
     canvas.dispatchEvent(canvasUpdate);
-    cursor.execute(ctx);
   }
+  toolPreview.updatePosition(e.offsetX, e.offsetY);
+  canvas.dispatchEvent(toolChanged);
 });
 
 canvas.addEventListener("drawing-changed", function () {
-  drawLines();
+  drawCanvas();
 });
 
 // Buttons
@@ -154,7 +189,6 @@ clearButton.addEventListener("click", () => {
 const undoButton = document.createElement("button");
 undoButton.innerHTML = "undo";
 document.body.append(undoButton);
-
 undoButton.addEventListener("click", () => {
   undo();
 });
@@ -162,7 +196,6 @@ undoButton.addEventListener("click", () => {
 const redoButton = document.createElement("button");
 redoButton.innerHTML = "redo";
 document.body.append(redoButton);
-
 redoButton.addEventListener("click", () => {
   redo();
 });
@@ -183,6 +216,7 @@ function addColorPicker() {
       const target = event.target as HTMLInputElement;
       currentColor = target.value;
       currentDrag.color = currentColor;
+      canvas.dispatchEvent(toolChanged);
       // Update line color or apply it wherever necessary
     });
 
@@ -219,6 +253,7 @@ function addThicknessSlider() {
       currentThickness = +target.value; // Convert string to number
       console.log("Line thickness set to:", currentThickness); // Feedback for verification
       currentDrag.thickness = currentThickness;
+      canvas.dispatchEvent(toolChanged);
     });
 
     // Append slider and label to the DOM
