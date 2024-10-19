@@ -67,7 +67,6 @@ let currentDrag: drag = {
   thickness: currentThickness,
   color: currentColor,
 };
-drags.push(currentDrag);
 const ctx = canvas.getContext("2d");
 
 function clear(): void {
