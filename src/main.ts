@@ -12,6 +12,7 @@ canvas.className = "kaku-canvas";
 canvas.width = 256;
 canvas.height = 256;
 app.appendChild(canvas);
+const ctx = canvas.getContext("2d");
 // Events
 const canvasUpdate: Event = new Event("drawing-changed");
 const toolChanged: Event = new Event("tool-changed");
@@ -22,7 +23,7 @@ let currentThickness: number = 1;
 // --------------------------------------------------------------------------------------------------------
 // Imports
 // --------------------------------------------------------------------------------------------------------
-import { point, line, drag, addLine, drawDrag } from "./dataTypes.ts";
+import { point, line, drag, action, stamp } from "./dataTypes.ts";
 import { wash } from "./drawCommands.ts";
 import {
   addColorPicker,
@@ -32,12 +33,8 @@ import {
 // --------------------------------------------------------------------------------------------------------
 // Setting up cursor and preview
 // --------------------------------------------------------------------------------------------------------
-enum penModes {
-  PEN,
-  STAMP,
-}
+
 const pen = {
-  mode: penModes.PEN,
   currentStamp: "🎲",
   previewActive: false,
   penDown: false,
@@ -49,9 +46,23 @@ const pen = {
   },
   draw(ctx: CanvasRenderingContext2D) {
     if (this.previewActive) {
-      ctx.fillStyle = currentColor;
-      ctx.font = `32px monospace`;
-      ctx.fillText("*", this.x - 8, this.y + 16);
+      if (currentAction instanceof drag) {
+        ctx.fillStyle = currentColor;
+        ctx.font = `32px monospace`;
+        ctx.fillText("*", this.x - 8, this.y + 16);
+      } else if (currentAction instanceof stamp) {
+        ctx.font = `${7 * currentThickness}px monospace`;
+
+        const metrics = ctx.measureText(this.currentStamp);
+        const textWidth = metrics.width;
+        const textHeight =
+          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        // Calculate position to draw text centered on the mouse
+        const x = this.x - textWidth / 2;
+        const y = this.y + textHeight / 2;
+        ctx.fillText(this.currentStamp, x, y);
+      }
     }
   },
 };
@@ -59,8 +70,8 @@ const pen = {
 function drawCanvas(): void {
   if (ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const i of drags) {
-      drawDrag(i, ctx);
+    for (const i of actions) {
+      i.draw(ctx);
     }
     pen.draw(ctx);
   }
@@ -68,22 +79,26 @@ function drawCanvas(): void {
 // --------------------------------------------------------------------------------------------------------
 // Establishing arrays for storing lines
 // --------------------------------------------------------------------------------------------------------
-let drags: drag[] = [];
-let undoneDrags: drag[] = [];
-let currentDrag: drag = {
-  lines: [],
-  thickness: currentThickness,
-  color: currentColor,
-};
-const ctx = canvas.getContext("2d");
+let actions: action[] = [];
+let undoneActions: action[] = [];
+let currentAction: action = new drag(currentThickness, currentColor);
+
 // --------------------------------------------------------------------------------------------------------
 // Triggers for drawing and updating canvas
 // --------------------------------------------------------------------------------------------------------
 canvas.addEventListener("tool-changed", function () {
+  if (currentAction instanceof stamp) {
+    currentAction.emoji = pen.currentStamp;
+
+    currentAction.size = currentThickness;
+  } else if (currentAction instanceof drag) {
+    currentAction.thickness = currentThickness;
+    currentAction.color = currentColor;
+  }
   drawCanvas();
 });
 
-canvas.addEventListener("mouseout", (e) => {
+canvas.addEventListener("mouseout", () => {
   pen.previewActive = false;
   canvas.dispatchEvent(toolChanged);
 });
@@ -95,36 +110,75 @@ canvas.addEventListener("mouseenter", (e) => {
 });
 
 canvas.addEventListener("mousedown", (e) => {
-  console.log(drags);
-  pen.penDown = true;
   pen.x = e.offsetX;
   pen.y = e.offsetY;
-  drags.push(currentDrag);
+  pen.penDown = true;
+  if (currentAction instanceof stamp) {
+    currentAction.x = pen.x;
+    currentAction.y = pen.y;
+  }
+  actions.push(currentAction);
 });
 
-canvas.addEventListener("mouseup", () => {
+canvas.addEventListener("mouseup", (e) => {
   pen.penDown = false;
-  if (currentDrag.lines.length == 0) {
-    drags.pop();
-  } else {
-    currentDrag = {
-      lines: [],
-      thickness: currentThickness,
-      color: currentColor,
-    };
+  if (currentAction instanceof drag) {
+    if (currentAction.lines.length == 0) {
+      actions.pop();
+    } else {
+      currentAction = new drag(currentThickness, currentColor);
+    }
+  } else if (currentAction instanceof stamp) {
+    if (ctx) {
+      pen.updatePosition(e.offsetX, e.offsetY);
+
+      ctx.font = `${7 * currentThickness}px monospace`;
+      const metrics = ctx.measureText(pen.currentStamp);
+      const textWidth = metrics.width;
+      const textHeight =
+        metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+      // Calculate position to draw text centered on the mouse
+      const x = pen.x - textWidth / 2;
+      const y = pen.y + textHeight / 2;
+
+      currentAction.x = x;
+      currentAction.y = y;
+    }
+
+    currentAction = new stamp(pen.currentStamp, currentThickness, pen.x, pen.y);
   }
+  canvas.dispatchEvent(canvasUpdate);
 });
 
 canvas.addEventListener("mousemove", (e) => {
-  if (pen.penDown && ctx) {
-    const start: point = { x: pen.x, y: pen.y };
-    const end: point = { x: e.offsetX, y: e.offsetY };
-    const newLine: line = { start, end };
-    addLine(currentDrag, newLine);
-    pen.x = e.offsetX;
-    pen.y = e.offsetY;
-    undoneDrags.length = 0;
-    canvas.dispatchEvent(canvasUpdate);
+  if (pen.penDown) {
+    if (currentAction instanceof drag) {
+      const start: point = { x: pen.x, y: pen.y };
+      const end: point = { x: e.offsetX, y: e.offsetY };
+      const newLine: line = { start, end };
+      currentAction.addLine(newLine);
+      pen.updatePosition(e.offsetX, e.offsetY);
+      undoneActions.length = 0;
+      canvas.dispatchEvent(canvasUpdate);
+    } else if (currentAction instanceof stamp) {
+      if (ctx) {
+        pen.updatePosition(e.offsetX, e.offsetY);
+
+        ctx.font = `${7 * currentThickness}px monospace`;
+        const metrics = ctx.measureText(pen.currentStamp);
+        const textWidth = metrics.width;
+        const textHeight =
+          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        // Calculate position to draw text centered on the mouse
+        const x = pen.x - textWidth / 2;
+        const y = pen.y + textHeight / 2;
+
+        currentAction.x = x;
+        currentAction.y = y;
+      }
+    }
   }
   pen.updatePosition(e.offsetX, e.offsetY);
   canvas.dispatchEvent(toolChanged);
@@ -138,28 +192,24 @@ canvas.addEventListener("drawing-changed", function () {
 // Buttons and associated functions
 // --------------------------------------------------------------------------------------------------------
 function clear(): void {
-  currentDrag = {
-    lines: [],
-    thickness: currentThickness,
-    color: currentColor,
-  };
+  currentAction = new drag(currentThickness, currentColor);
   if (ctx) {
     wash(canvas, ctx);
   }
-  drags = [];
-  undoneDrags = [];
+  actions = [];
+  undoneActions = [];
 }
 function undo(): void {
-  const undoneDrag: drag | undefined = drags.pop();
+  const undoneDrag: action | undefined = actions.pop();
   if (undoneDrag) {
-    undoneDrags.push(undoneDrag);
+    undoneActions.push(undoneDrag);
   }
   canvas.dispatchEvent(canvasUpdate);
 }
 function redo(): void {
-  const redoneDrag: drag | undefined = undoneDrags.pop();
+  const redoneDrag: action | undefined = undoneActions.pop();
   if (redoneDrag) {
-    drags.push(redoneDrag);
+    actions.push(redoneDrag);
   }
   canvas.dispatchEvent(canvasUpdate);
 }
@@ -172,22 +222,29 @@ const _undoButton = createButton("undo", app, () => {
 const _redoButton = createButton("redo", app, () => {
   redo();
 });
+const _penMode = createButton("Pen Mode", app, () => {
+  if (currentAction instanceof stamp) {
+    currentAction = new drag(currentThickness, currentColor);
+  }
+});
+const _stampMode = createButton("Stamp Mode", app, () => {
+  if (currentAction instanceof drag) {
+    currentAction = new stamp(pen.currentStamp, currentThickness, 0, 0);
+  }
+});
 
 const colorPicker = addColorPicker(app);
 colorPicker.addEventListener("input", (event) => {
   const target = event.target as HTMLInputElement;
   currentColor = target.value;
-  currentDrag.color = currentColor;
   canvas.dispatchEvent(toolChanged);
-  // Update line color or apply it wherever necessary
+  // Set Pen mode
 });
 
 const thicknessSlider = addThicknessSlider(app);
 thicknessSlider.addEventListener("input", (event) => {
   const target = event.target as HTMLInputElement;
   currentThickness = +target.value; // Convert string to number
-  console.log("Line thickness set to:", currentThickness); // Feedback for verification
-  currentDrag.thickness = currentThickness;
   canvas.dispatchEvent(toolChanged);
 });
 
@@ -197,13 +254,11 @@ const emojiButtons: HTMLElement[] = [];
 for (const emoji of startingEmojis) {
   emojiButtons.push(
     createButton(emoji, app, () => {
-      // set to emoji mode- maybe send signal?
-      // set emoji drawing tool to use current emoji
-      pen.mode = penModes.STAMP;
       pen.currentStamp = emoji;
+      if (currentAction instanceof drag) {
+        currentAction = new stamp(emoji, currentThickness, 0, 0);
+      }
+      canvas.dispatchEvent(toolChanged);
     })
   );
 }
-const _ = createButton("clear", app, () => {
-  clear();
-});
