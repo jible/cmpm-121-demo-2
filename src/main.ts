@@ -344,6 +344,7 @@ thicknessSlider.addEventListener("input", (event) => {
   canvas.dispatchEvent(toolChanged);
 });
 
+pen.currentThickness = +thicknessSlider.value;
 // emoji buttons
 function createEmojiButton(emoji: string, parent: HTMLElement) {
   return createButton(emoji, parent, () => {

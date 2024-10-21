@@ -4,7 +4,7 @@ export function addThicknessSlider(app: HTMLElement) {
   thicknessSlider.type = "range";
   thicknessSlider.min = "1"; // Minimum thickness
   thicknessSlider.max = "50"; // Maximum thickness (can adjust as needed)
-  thicknessSlider.value = "1"; // Default value
+  thicknessSlider.value = "10"; // Default value
   thicknessSlider.id = "thicknessSlider";
 
   // Label for slider
