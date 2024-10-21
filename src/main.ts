@@ -1,6 +1,6 @@
 import "./style.css";
 
-const APP_NAME = "Kaku";
+const APP_NAME = "Drä";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 document.title = APP_NAME;
