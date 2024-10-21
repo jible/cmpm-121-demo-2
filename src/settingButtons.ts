@@ -1,15 +1,3 @@
-export function addColorPicker(app: HTMLElement) {
-  // Create the color picker input element
-  const colorPicker = document.createElement("input");
-  colorPicker.type = "color";
-  colorPicker.id = "colorPicker";
-  colorPicker.value = "#000000"; // Default color: black
-
-  // Insert the color picker into the DOM
-  app.appendChild(colorPicker);
-  return colorPicker;
-}
-
 export function addThicknessSlider(app: HTMLElement) {
   // Create the slider
   const thicknessSlider = document.createElement("input");

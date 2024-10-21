@@ -96,6 +96,7 @@ button:focus-visible {
 
 
 .kaku-canvas {
+  
   background-color: #f9f9f9;
   border: 5px solid;
   border-color: #0e7224;
@@ -103,11 +104,13 @@ button:focus-visible {
   padding: 0;
   cursor: pointer;
   z-index: 5;
+  flex-shrink: 0;
+
 }
 
 .title-container {
   width: 100%;
-  padding: 0px;;
+  padding: 0px;
   display: flex;
   font-size: 10em;
   align-items: center;
@@ -116,32 +119,42 @@ button:focus-visible {
   border-bottom: 5px solid #151b16 ;
 }
 
+.tool-canvas-container{
+
+  align-items: flex-start; /* To align items in the same row */
+  justify-content: flex-start; /* Left-align items */
+  width:100%;
+  align-items: left;
+  padding: 0px;
+  display: flex;
+  flex-direction: row; 
+}
+
 .control-container{
+  
+  width: 20%;
   align-items: left;
+  padding: 0px;
   border: 5px solid rgb(37, 158, 107);
+  flex-direction: column; 
+  display: flex;
 }
 
-.pen-mod-container{
+.nested-container{
+  border-right: 5px solid rgb(53, 37, 158);
+  border-left: 5px solid rgb(53, 37, 158);
+  border-bottom: 5px solid rgb(53, 37, 158);
   align-items: left;
-  border: 5px solid rgb(139, 25, 139);
-}
-
-.emoji-container{
-  align-items: left;
-}
-.emoji-control-container{
-  border: 5px solid rgb(15, 107, 110);
+  padding: 0px;
 }
 
 .tool-container{
   width: 20%;
-  position: fixed;
   display: flex;
   justify-content: flex-start; /* Align items to the start (left) of the container */
   border: 5px solid red;
   flex-direction: column; /* Arrange items in a column, i.e., vertically */
   left: 0;
-  position: relative; /* Ensure it's positioned relative to the nearest positioned ancestor */
   margin: 0;
   padding:0;
   align-items: flex-start;

@@ -15,48 +15,60 @@ app.appendChild(titleContainer);
 body{
   app{
     title
-    allToolContainer{
-      PenMods
-      emojiControl...
-      controlContainer
+    canvastoolcontainer{
+        allToolContainer{
+            PenMods{
+                colors
+
+            }
+            emojiControl...
+            controlContainer
+        }
+        canvas
     }
-    canvas
   }
 }
 */
+const canvasToolContainer = document.createElement("div");
+canvasToolContainer.className = "tool-canvas-container";
+app.appendChild(canvasToolContainer);
+
 const allToolContainer = document.createElement("div");
-allToolContainer.className = "tool-container";
-app.appendChild(allToolContainer);
+allToolContainer.className = "control-container";
+canvasToolContainer.appendChild(allToolContainer);
 
 const controlContainer = document.createElement("div");
-controlContainer.className = "control-container";
+controlContainer.className = "nested-container";
 allToolContainer.appendChild(controlContainer);
 
 const emojiControlContainer = document.createElement("div");
-emojiControlContainer.className = "emoji-control-container";
+emojiControlContainer.className = "nested-container";
 allToolContainer.appendChild(emojiControlContainer);
 
 const emojiContainer = document.createElement("div");
-emojiContainer.className = "emoji-container";
+emojiContainer.className = "nested-container";
 emojiControlContainer.appendChild(emojiContainer);
-// Thickness and color slider container
+
 const penModifiers = document.createElement("div");
-penModifiers.className = "pen-mod-container";
+penModifiers.className = "nested-container";
 allToolContainer.appendChild(penModifiers);
+
+const colorButtonsContainer = document.createElement("div");
+colorButtonsContainer.className = "nested-container";
+penModifiers.appendChild(colorButtonsContainer);
 
 // Create canvas
 const canvas = document.createElement("canvas");
 canvas.className = "kaku-canvas";
-canvas.width = 240;
-canvas.height = 240;
-app.appendChild(canvas);
+canvas.width = 500;
+canvas.height = 500;
+canvasToolContainer.appendChild(canvas);
 const ctx = canvas.getContext("2d");
 // Events
 const canvasUpdate: Event = new Event("drawing-changed");
-const toolChanged: Event = new Event("tool-changed");
+export const toolChanged: Event = new Event("tool-changed");
 // tool settings
-let currentColor: string = "#000000"; // Default color
-let currentThickness: number = 1;
+
 
 // --------------------------------------------------------------------------------------------------------
 // Imports
@@ -64,7 +76,6 @@ let currentThickness: number = 1;
 import { point, line, drag, action, stamp } from "./dataTypes.ts";
 import { wash } from "./drawCommands.ts";
 import {
-  addColorPicker,
   addThicknessSlider,
   createButton,
 } from "./settingButtons.ts";
@@ -73,6 +84,8 @@ import {
 // --------------------------------------------------------------------------------------------------------
 
 const pen = {
+    currentColor : "#000000", // Default color
+currentThickness : 1,
   currentStamp: "🎲",
   previewActive: false,
   penDown: false,
@@ -85,11 +98,11 @@ const pen = {
   draw(ctx: CanvasRenderingContext2D) {
     if (this.previewActive) {
       if (currentAction instanceof drag) {
-        ctx.fillStyle = currentColor;
+        ctx.fillStyle = pen.currentColor;
         ctx.font = `32px monospace`;
         ctx.fillText("*", this.x - 8, this.y + 16);
       } else if (currentAction instanceof stamp) {
-        ctx.font = `${7 * currentThickness}px monospace`;
+        ctx.font = `${7 * pen.currentThickness}px monospace`;
 
         const metrics = ctx.measureText(this.currentStamp);
         const textWidth = metrics.width;
@@ -119,7 +132,7 @@ function drawCanvas(): void {
 // --------------------------------------------------------------------------------------------------------
 let actions: action[] = [];
 let undoneActions: action[] = [];
-let currentAction: action = new drag(currentThickness, currentColor);
+let currentAction: action = new drag(pen.currentThickness, pen.currentColor);
 
 // --------------------------------------------------------------------------------------------------------
 // Triggers for drawing and updating canvas
@@ -131,13 +144,13 @@ function stopAction(e: MouseEvent) {
       if (currentAction.lines.length == 0) {
         actions.pop();
       } else {
-        currentAction = new drag(currentThickness, currentColor);
+        currentAction = new drag(pen.currentThickness, pen.currentColor);
       }
     } else if (currentAction instanceof stamp) {
       if (ctx) {
         pen.updatePosition(e.offsetX, e.offsetY);
 
-        ctx.font = `${7 * currentThickness}px monospace`;
+        ctx.font = `${7 * pen.currentThickness}px monospace`;
         const metrics = ctx.measureText(pen.currentStamp);
         const textWidth = metrics.width;
         const textHeight =
@@ -153,7 +166,7 @@ function stopAction(e: MouseEvent) {
 
       currentAction = new stamp(
         pen.currentStamp,
-        currentThickness,
+        pen.currentThickness,
         pen.x,
         pen.y
       );
@@ -166,10 +179,10 @@ canvas.addEventListener("tool-changed", function () {
   if (currentAction instanceof stamp) {
     currentAction.emoji = pen.currentStamp;
 
-    currentAction.size = currentThickness;
+    currentAction.size = pen.currentThickness;
   } else if (currentAction instanceof drag) {
-    currentAction.thickness = currentThickness;
-    currentAction.color = currentColor;
+    currentAction.thickness = pen.currentThickness;
+    currentAction.color = pen.currentColor;
   }
   drawCanvas();
 });
@@ -216,7 +229,7 @@ canvas.addEventListener("mousemove", (e) => {
       if (ctx) {
         pen.updatePosition(e.offsetX, e.offsetY);
 
-        ctx.font = `${7 * currentThickness}px monospace`;
+        ctx.font = `${7 * pen.currentThickness}px monospace`;
         const metrics = ctx.measureText(pen.currentStamp);
         const textWidth = metrics.width;
         const textHeight =
@@ -243,7 +256,7 @@ canvas.addEventListener("drawing-changed", function () {
 // Buttons and associated functions
 // --------------------------------------------------------------------------------------------------------
 function clear(): void {
-  currentAction = new drag(currentThickness, currentColor);
+  currentAction = new drag(pen.currentThickness, pen.currentColor);
   if (ctx) {
     wash(canvas, ctx);
   }
@@ -275,27 +288,59 @@ const _redoButton = createButton("redo", controlContainer, () => {
 });
 const _penMode = createButton("Pen Mode", controlContainer, () => {
   if (currentAction instanceof stamp) {
-    currentAction = new drag(currentThickness, currentColor);
+    currentAction = new drag(pen.currentThickness, pen.currentColor);
   }
 });
 const _stampMode = createButton("Stamp Mode", controlContainer, () => {
   if (currentAction instanceof drag) {
-    currentAction = new stamp(pen.currentStamp, currentThickness, 0, 0);
+    currentAction = new stamp(pen.currentStamp, pen.currentThickness, 0, 0);
   }
 });
 
-const colorPicker = addColorPicker(penModifiers);
-colorPicker.addEventListener("input", (event) => {
-  const target = event.target as HTMLInputElement;
-  currentColor = target.value;
-  canvas.dispatchEvent(toolChanged);
-  // Set Pen mode
-});
+
+export function addColorPicker(app: HTMLElement) {
+    // Create the color picker input element
+    const colorPicker = document.createElement("input");
+    colorPicker.type = "color";
+    colorPicker.id = "colorPicker";
+    colorPicker.value = "#000000"; // Default color: black
+  
+    colorPicker.addEventListener("input", (event) => {
+      const target = event.target as HTMLInputElement;
+      pen.currentColor = target.value;
+      canvas.dispatchEvent(toolChanged);
+      // Set Pen mode
+    });
+
+    colorPicker.addEventListener("click", (event) => {
+        const target = event.target as HTMLInputElement;
+        pen.currentColor = target.value;
+        canvas.dispatchEvent(toolChanged);
+        // Set Pen mode
+      });
+    // Insert the color picker into the DOM
+    app.appendChild(colorPicker);
+    return colorPicker;
+  }
+
+const _colorAdder = createButton("new color", penModifiers, () => {
+    colorPickerButtons.push(addColorPicker(colorButtonsContainer));
+    
+  });
+const colorPickerButtons = [];
+
+
+const _startingColorPicker = addColorPicker(colorButtonsContainer);
+
+
+
+
+
 
 const thicknessSlider = addThicknessSlider(controlContainer);
 thicknessSlider.addEventListener("input", (event) => {
   const target = event.target as HTMLInputElement;
-  currentThickness = +target.value; // Convert string to number
+  pen.currentThickness = +target.value; // Convert string to number
   canvas.dispatchEvent(toolChanged);
 });
 
@@ -304,7 +349,7 @@ function createEmojiButton(emoji: string, parent: HTMLElement) {
   return createButton(emoji, parent, () => {
     pen.currentStamp = emoji;
     if (currentAction instanceof drag) {
-      currentAction = new stamp(emoji, currentThickness, 0, 0);
+      currentAction = new stamp(emoji, pen.currentThickness, 0, 0);
     }
     canvas.dispatchEvent(toolChanged);
   });
@@ -328,3 +373,27 @@ const _newstamp = createButton("new stamp", emojiControlContainer, () => {
   }
   emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });
+
+
+
+const _exportButton = createButton("export", controlContainer, () => {
+    // Create a temporary canvas
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d")!;
+  
+    // Set the desired resolution
+    tempCanvas.width = 1024;
+    tempCanvas.height = 1024;
+  
+    // Draw the original canvas content onto the new canvas, scaling to fill the space
+    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+  
+    // Create an anchor element for downloading
+    const anchor = document.createElement("a");
+    anchor.href = tempCanvas.toDataURL("image/png");
+    anchor.download = "sketchpad_1024x1024.png";
+    // Append, click, and remove the anchor
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  });
