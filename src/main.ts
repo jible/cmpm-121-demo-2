@@ -94,7 +94,7 @@ const pen = {
     if (this.previewActive) {
       ctx.fillStyle = pen.currentColor;
       if (currentAction instanceof drag) {
-        ctx.font = `${this.currentThickness * 1.25}px monospace`;
+        ctx.font = `${this.currentThickness * 1.7}px monospace`;
 
         const metrics = ctx.measureText("*");
         const textWidth = metrics.width;
