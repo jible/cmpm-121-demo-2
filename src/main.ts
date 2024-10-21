@@ -262,3 +262,31 @@ for (const emoji of startingEmojis) {
     })
   );
 }
+
+const _newstamp = createButton("new stamp", app, () => {
+  // prompt player for new emoji
+  // make sure emoji doesn't already have a button.
+  // if it has a button do nothing.
+  // if it doesnt have a button make a new button for that emoji.
+  // put it between the new emoji button and the last emoji button.
+  const newEmoji = prompt("Choose a new stamp");
+  if (!newEmoji) {
+    return;
+  }
+  for (const emojiButton of emojiButtons) {
+    if (newEmoji == emojiButton.innerHTML) {
+      return;
+    }
+  }
+  // This proves the emoji exists and isn't already used.
+
+  emojiButtons.push(
+    createButton(newEmoji, app, () => {
+      pen.currentStamp = newEmoji;
+      if (currentAction instanceof drag) {
+        currentAction = new stamp(newEmoji, currentThickness, 0, 0);
+      }
+      canvas.dispatchEvent(toolChanged);
+    })
+  );
+});
