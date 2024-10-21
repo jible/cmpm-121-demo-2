@@ -368,24 +368,57 @@ const _newstamp = createButton("new stamp", emojiControlContainer, () => {
   emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });
 
-const _exportButton = createButton("export", controlContainer, () => {
-  // Create a temporary canvas
-  const tempCanvas = document.createElement("canvas");
-  const tempCtx = tempCanvas.getContext("2d")!;
+const _exportButtonA = createButton(
+  "Export with transparent background",
+  controlContainer,
+  () => {
+    // Create a temporary canvas
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d")!;
 
-  // Set the desired resolution
-  tempCanvas.width = 1024;
-  tempCanvas.height = 1024;
+    // Set the desired resolution
+    tempCanvas.width = 1024;
+    tempCanvas.height = 1024;
 
-  // Draw the original canvas content onto the new canvas, scaling to fill the space
-  tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+    // Draw the original canvas content onto the new canvas, scaling to fill the space
+    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
 
-  // Create an anchor element for downloading
-  const anchor = document.createElement("a");
-  anchor.href = tempCanvas.toDataURL("image/png");
-  anchor.download = "sketchpad_1024x1024.png";
-  // Append, click, and remove the anchor
-  document.body.appendChild(anchor);
-  anchor.click();
-  document.body.removeChild(anchor);
-});
+    // Create an anchor element for downloading
+    const anchor = document.createElement("a");
+    anchor.href = tempCanvas.toDataURL("image/png");
+    anchor.download = "sketchpad_1024x1024.png";
+    // Append, click, and remove the anchor
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  },
+);
+
+const _exportButtonB = createButton(
+  "Export with selected color background",
+  controlContainer,
+  () => {
+    // Create a temporary canvas
+    const tempCanvas = document.createElement("canvas");
+    const tempCtx = tempCanvas.getContext("2d")!;
+
+    // Set the desired resolution
+    tempCanvas.width = 1024;
+    tempCanvas.height = 1024;
+    if (ctx) {
+      ctx.fillStyle = pen.currentColor; // Set the fill color to your desired background color
+      ctx.fillRect(0, 0, canvas.width, canvas.height); // Covers the entire canvas area
+    }
+    // Draw the original canvas content onto the new canvas, scaling to fill the space
+    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+    // Create an anchor element for downloading
+    const anchor = document.createElement("a");
+    anchor.href = tempCanvas.toDataURL("image/png");
+    anchor.download = "sketchpad_1024x1024.png";
+    // Append, click, and remove the anchor
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  },
+);
