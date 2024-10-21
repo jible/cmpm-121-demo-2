@@ -97,8 +97,8 @@ const pen = {
   },
   draw(ctx: CanvasRenderingContext2D) {
     if (this.previewActive) {
-      if (currentAction instanceof drag) {
         ctx.fillStyle = pen.currentColor;
+      if (currentAction instanceof drag) {
         ctx.font = `32px monospace`;
         ctx.fillText("*", this.x - 8, this.y + 16);
       } else if (currentAction instanceof stamp) {
