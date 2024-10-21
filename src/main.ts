@@ -4,25 +4,45 @@ const APP_NAME = "Kaku";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 document.title = APP_NAME;
-
-// Make containers:
-
-const emojiContainer = document.createElement("div");
-emojiContainer.className = "emoji-container";
-app.appendChild(emojiContainer);
-// Thickness and color slider container
-const penModifiers = document.createElement("div");
-penModifiers.className = "pen-mod-container";
-app.appendChild(penModifiers);
-// clear undo redo container
-const controlContainer = document.createElement("div");
-controlContainer.className = "control-container";
-app.appendChild(controlContainer);
 // title container.
 const titleContainer = document.createElement("div");
 titleContainer.className = "title-container";
 titleContainer.innerHTML = APP_NAME;
 app.appendChild(titleContainer);
+
+// Make containers:
+/* Containers heirachy:
+body{
+  app{
+    title
+    allToolContainer{
+      PenMods
+      emojiControl...
+      controlContainer
+    }
+    canvas
+  }
+}
+*/
+const allToolContainer = document.createElement("div");
+allToolContainer.className = "tool-container";
+app.appendChild(allToolContainer);
+
+const controlContainer = document.createElement("div");
+controlContainer.className = "control-container";
+allToolContainer.appendChild(controlContainer);
+
+const emojiControlContainer = document.createElement("div");
+emojiControlContainer.className = "emoji-control-container";
+allToolContainer.appendChild(emojiControlContainer);
+
+const emojiContainer = document.createElement("div");
+emojiContainer.className = "emoji-container";
+emojiControlContainer.appendChild(emojiContainer);
+// Thickness and color slider container
+const penModifiers = document.createElement("div");
+penModifiers.className = "pen-mod-container";
+allToolContainer.appendChild(penModifiers);
 
 // Create canvas
 const canvas = document.createElement("canvas");
@@ -104,7 +124,6 @@ let currentAction: action = new drag(currentThickness, currentColor);
 // --------------------------------------------------------------------------------------------------------
 // Triggers for drawing and updating canvas
 // --------------------------------------------------------------------------------------------------------
-// making a function for when the pen is picked up or goes off the canvas
 function stopAction(e: MouseEvent) {
   if (pen.penDown) {
     pen.penDown = false;
@@ -245,27 +264,27 @@ function redo(): void {
   }
   canvas.dispatchEvent(canvasUpdate);
 }
-const _clearButton = createButton("clear", app, () => {
+const _clearButton = createButton("clear", controlContainer, () => {
   clear();
 });
-const _undoButton = createButton("undo", app, () => {
+const _undoButton = createButton("undo", controlContainer, () => {
   undo();
 });
-const _redoButton = createButton("redo", app, () => {
+const _redoButton = createButton("redo", controlContainer, () => {
   redo();
 });
-const _penMode = createButton("Pen Mode", app, () => {
+const _penMode = createButton("Pen Mode", controlContainer, () => {
   if (currentAction instanceof stamp) {
     currentAction = new drag(currentThickness, currentColor);
   }
 });
-const _stampMode = createButton("Stamp Mode", app, () => {
+const _stampMode = createButton("Stamp Mode", controlContainer, () => {
   if (currentAction instanceof drag) {
     currentAction = new stamp(pen.currentStamp, currentThickness, 0, 0);
   }
 });
 
-const colorPicker = addColorPicker(app);
+const colorPicker = addColorPicker(penModifiers);
 colorPicker.addEventListener("input", (event) => {
   const target = event.target as HTMLInputElement;
   currentColor = target.value;
@@ -273,7 +292,7 @@ colorPicker.addEventListener("input", (event) => {
   // Set Pen mode
 });
 
-const thicknessSlider = addThicknessSlider(app);
+const thicknessSlider = addThicknessSlider(controlContainer);
 thicknessSlider.addEventListener("input", (event) => {
   const target = event.target as HTMLInputElement;
   currentThickness = +target.value; // Convert string to number
@@ -294,10 +313,10 @@ function createEmojiButton(emoji: string, parent: HTMLElement) {
 const startingEmojis: string[] = ["😂", "🚀", "🎲"];
 const emojiButtons: HTMLElement[] = [];
 for (const emoji of startingEmojis) {
-  emojiButtons.push(createEmojiButton(emoji, app));
+  emojiButtons.push(createEmojiButton(emoji, emojiContainer));
 }
 
-const _newstamp = createButton("new stamp", app, () => {
+const _newstamp = createButton("new stamp", emojiControlContainer, () => {
   const newEmoji = prompt("Choose a new stamp");
   if (!newEmoji) {
     return;
@@ -307,5 +326,5 @@ const _newstamp = createButton("new stamp", app, () => {
       return;
     }
   }
-  emojiButtons.push(createEmojiButton(newEmoji, app));
+  emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });

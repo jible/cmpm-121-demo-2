@@ -37,9 +37,9 @@ h1 {
 
 #app {
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  margin: 0;            /* Ensure no centering occurs through margin */
+  padding: 0;
+  text-align: left;
 }
 
 .logo {
@@ -106,25 +106,43 @@ button:focus-visible {
 }
 
 .title-container {
+  width: 100%;
+  padding: 0px;;
   display: flex;
   font-size: 10em;
-  flex-direction: column;
   align-items: center;
-  position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: transparent;
+  background-color: rgb(156, 134, 100);
+  border-bottom: 5px solid #151b16 ;
 }
 
 .control-container{
   align-items: left;
+  border: 5px solid rgb(37, 158, 107);
 }
 
 .pen-mod-container{
   align-items: left;
+  border: 5px solid rgb(139, 25, 139);
 }
 
 .emoji-container{
   align-items: left;
+}
+.emoji-control-container{
+  border: 5px solid rgb(15, 107, 110);
+}
+
+.tool-container{
+  width: 20%;
+  position: fixed;
+  display: flex;
+  justify-content: flex-start; /* Align items to the start (left) of the container */
+  border: 5px solid red;
+  flex-direction: column; /* Arrange items in a column, i.e., vertically */
+  left: 0;
+  position: relative; /* Ensure it's positioned relative to the nearest positioned ancestor */
+  margin: 0;
+  padding:0;
+  align-items: flex-start;
 }
