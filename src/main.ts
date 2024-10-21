@@ -4,7 +4,6 @@ const APP_NAME = "Kaku";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 document.title = APP_NAME;
-// title container.
 const titleContainer = document.createElement("div");
 titleContainer.className = "title-container";
 titleContainer.innerHTML = APP_NAME;
@@ -97,13 +96,26 @@ const pen = {
   },
   draw(ctx: CanvasRenderingContext2D) {
     if (this.previewActive) {
+
+        
+
+
         ctx.fillStyle = pen.currentColor;
       if (currentAction instanceof drag) {
-        ctx.font = `32px monospace`;
-        ctx.fillText("*", this.x - 8, this.y + 16);
+        ctx.font = `${this.currentThickness * 1.25}px monospace`;
+
+        const metrics = ctx.measureText("*");
+        const textWidth = metrics.width;
+        const textHeight =
+          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        // Calculate position to draw text centered on the mouse
+        const x = this.x - textWidth / 2;
+        const y = this.y + textHeight / 2;
+
+        ctx.fillText("*", x , y);
       } else if (currentAction instanceof stamp) {
         ctx.font = `${7 * pen.currentThickness}px monospace`;
-
         const metrics = ctx.measureText(this.currentStamp);
         const textWidth = metrics.width;
         const textHeight =
@@ -371,6 +383,8 @@ const _newstamp = createButton("new stamp", emojiControlContainer, () => {
   }
   emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });
+
+
 
 
 
