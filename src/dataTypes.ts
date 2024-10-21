@@ -30,7 +30,7 @@ export class stamp {
   size: number = 1;
   x: number = 0;
   y: number = 0;
-  constructor(emoji: string, size: number, x: number, y: number) {}
+  constructor(_emoji: string, _size: number, _x: number, _y: number) {}
   draw(ctx: CanvasRenderingContext2D) {
     ctx.font = `${this.size * 7}px monospace`;
     ctx.fillText(this.emoji, this.x, this.y);
