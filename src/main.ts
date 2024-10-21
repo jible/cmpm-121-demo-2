@@ -84,8 +84,8 @@ import {
 // --------------------------------------------------------------------------------------------------------
 
 const pen = {
-    currentColor : "#000000", // Default color
-currentThickness : 1,
+  currentColor : "#000000", // Default color
+  currentThickness : 1,
   currentStamp: "🎲",
   previewActive: false,
   penDown: false,
@@ -203,6 +203,7 @@ canvas.addEventListener("mousedown", (e) => {
   pen.x = e.offsetX;
   pen.y = e.offsetY;
   pen.penDown = true;
+  currentAction.color = pen.currentColor;
   if (currentAction instanceof stamp) {
     currentAction.x = pen.x;
     currentAction.y = pen.y;
@@ -277,13 +278,13 @@ function redo(): void {
   }
   canvas.dispatchEvent(canvasUpdate);
 }
-const _clearButton = createButton("clear", controlContainer, () => {
+const _clearButton = createButton("Clear", controlContainer, () => {
   clear();
 });
-const _undoButton = createButton("undo", controlContainer, () => {
+const _undoButton = createButton("Undo", controlContainer, () => {
   undo();
 });
-const _redoButton = createButton("redo", controlContainer, () => {
+const _redoButton = createButton("Redo", controlContainer, () => {
   redo();
 });
 const _penMode = createButton("Pen Mode", controlContainer, () => {

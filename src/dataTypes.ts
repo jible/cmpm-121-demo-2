@@ -27,11 +27,13 @@ export class drag {
 
 export class stamp {
   emoji: string = "😂";
+  color: string = '#000000';
   size: number = 1;
   x: number = 0;
   y: number = 0;
   constructor(_emoji: string, _size: number, _x: number, _y: number) {}
   draw(ctx: CanvasRenderingContext2D) {
+    ctx.fillStyle = this.color;
     ctx.font = `${this.size * 7}px monospace`;
     ctx.fillText(this.emoji, this.x, this.y);
   }
@@ -39,4 +41,5 @@ export class stamp {
 
 export interface action {
   draw(ctx: CanvasRenderingContext2D): void;
+  color:string;
 }
