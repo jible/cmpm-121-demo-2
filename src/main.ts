@@ -1,16 +1,34 @@
 import "./style.css";
 
-const APP_NAME = "kaku";
+const APP_NAME = "Kaku";
 const app = document.querySelector<HTMLDivElement>("#app")!;
 
 document.title = APP_NAME;
-app.innerHTML = APP_NAME;
+
+// Make containers:
+
+const emojiContainer = document.createElement("div");
+emojiContainer.className = "emoji-container";
+app.appendChild(emojiContainer);
+// Thickness and color slider container
+const penModifiers = document.createElement("div");
+penModifiers.className = "pen-mod-container";
+app.appendChild(penModifiers);
+// clear undo redo container
+const controlContainer = document.createElement("div");
+controlContainer.className = "control-container";
+app.appendChild(controlContainer);
+// title container.
+const titleContainer = document.createElement("div");
+titleContainer.className = "title-container";
+titleContainer.innerHTML = APP_NAME;
+app.appendChild(titleContainer);
 
 // Create canvas
 const canvas = document.createElement("canvas");
 canvas.className = "kaku-canvas";
-canvas.width = 256;
-canvas.height = 256;
+canvas.width = 240;
+canvas.height = 240;
 app.appendChild(canvas);
 const ctx = canvas.getContext("2d");
 // Events
@@ -86,6 +104,45 @@ let currentAction: action = new drag(currentThickness, currentColor);
 // --------------------------------------------------------------------------------------------------------
 // Triggers for drawing and updating canvas
 // --------------------------------------------------------------------------------------------------------
+// making a function for when the pen is picked up or goes off the canvas
+function stopAction(e: MouseEvent) {
+  if (pen.penDown) {
+    pen.penDown = false;
+    if (currentAction instanceof drag) {
+      if (currentAction.lines.length == 0) {
+        actions.pop();
+      } else {
+        currentAction = new drag(currentThickness, currentColor);
+      }
+    } else if (currentAction instanceof stamp) {
+      if (ctx) {
+        pen.updatePosition(e.offsetX, e.offsetY);
+
+        ctx.font = `${7 * currentThickness}px monospace`;
+        const metrics = ctx.measureText(pen.currentStamp);
+        const textWidth = metrics.width;
+        const textHeight =
+          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+        // Calculate position to draw text centered on the mouse
+        const x = pen.x - textWidth / 2;
+        const y = pen.y + textHeight / 2;
+
+        currentAction.x = x;
+        currentAction.y = y;
+      }
+
+      currentAction = new stamp(
+        pen.currentStamp,
+        currentThickness,
+        pen.x,
+        pen.y
+      );
+    }
+    canvas.dispatchEvent(canvasUpdate);
+  }
+}
+
 canvas.addEventListener("tool-changed", function () {
   if (currentAction instanceof stamp) {
     currentAction.emoji = pen.currentStamp;
@@ -98,8 +155,9 @@ canvas.addEventListener("tool-changed", function () {
   drawCanvas();
 });
 
-canvas.addEventListener("mouseout", () => {
+canvas.addEventListener("mouseout", (e) => {
   pen.previewActive = false;
+  stopAction(e);
   canvas.dispatchEvent(toolChanged);
 });
 
@@ -121,33 +179,7 @@ canvas.addEventListener("mousedown", (e) => {
 });
 
 canvas.addEventListener("mouseup", (e) => {
-  pen.penDown = false;
-  if (currentAction instanceof drag) {
-    if (currentAction.lines.length == 0) {
-      actions.pop();
-    } else {
-      currentAction = new drag(currentThickness, currentColor);
-    }
-  } else if (currentAction instanceof stamp) {
-    if (ctx) {
-      pen.updatePosition(e.offsetX, e.offsetY);
-
-      ctx.font = `${7 * currentThickness}px monospace`;
-      const metrics = ctx.measureText(pen.currentStamp);
-      const textWidth = metrics.width;
-      const textHeight =
-        metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
-
-      // Calculate position to draw text centered on the mouse
-      const x = pen.x - textWidth / 2;
-      const y = pen.y + textHeight / 2;
-
-      currentAction.x = x;
-      currentAction.y = y;
-    }
-
-    currentAction = new stamp(pen.currentStamp, currentThickness, pen.x, pen.y);
-  }
+  stopAction(e);
   canvas.dispatchEvent(canvasUpdate);
 });
 
@@ -249,26 +281,23 @@ thicknessSlider.addEventListener("input", (event) => {
 });
 
 // emoji buttons
+function createEmojiButton(emoji: string, parent: HTMLElement) {
+  return createButton(emoji, parent, () => {
+    pen.currentStamp = emoji;
+    if (currentAction instanceof drag) {
+      currentAction = new stamp(emoji, currentThickness, 0, 0);
+    }
+    canvas.dispatchEvent(toolChanged);
+  });
+}
+
 const startingEmojis: string[] = ["😂", "🚀", "🎲"];
 const emojiButtons: HTMLElement[] = [];
 for (const emoji of startingEmojis) {
-  emojiButtons.push(
-    createButton(emoji, app, () => {
-      pen.currentStamp = emoji;
-      if (currentAction instanceof drag) {
-        currentAction = new stamp(emoji, currentThickness, 0, 0);
-      }
-      canvas.dispatchEvent(toolChanged);
-    })
-  );
+  emojiButtons.push(createEmojiButton(emoji, app));
 }
 
 const _newstamp = createButton("new stamp", app, () => {
-  // prompt player for new emoji
-  // make sure emoji doesn't already have a button.
-  // if it has a button do nothing.
-  // if it doesnt have a button make a new button for that emoji.
-  // put it between the new emoji button and the last emoji button.
   const newEmoji = prompt("Choose a new stamp");
   if (!newEmoji) {
     return;
@@ -278,15 +307,5 @@ const _newstamp = createButton("new stamp", app, () => {
       return;
     }
   }
-  // This proves the emoji exists and isn't already used.
-
-  emojiButtons.push(
-    createButton(newEmoji, app, () => {
-      pen.currentStamp = newEmoji;
-      if (currentAction instanceof drag) {
-        currentAction = new stamp(newEmoji, currentThickness, 0, 0);
-      }
-      canvas.dispatchEvent(toolChanged);
-    })
-  );
+  emojiButtons.push(createEmojiButton(newEmoji, app));
 });
