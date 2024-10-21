@@ -156,7 +156,6 @@ function stopAction(e: MouseEvent) {
         const textHeight =
           metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
-        // Calculate position to draw text centered on the mouse
         const x = pen.x - textWidth / 2;
         const y = pen.y + textHeight / 2;
 
@@ -300,24 +299,21 @@ const _stampMode = createButton("Stamp Mode", controlContainer, () => {
 
 
 export function addColorPicker(app: HTMLElement) {
-    // Create the color picker input element
     const colorPicker = document.createElement("input");
     colorPicker.type = "color";
     colorPicker.id = "colorPicker";
-    colorPicker.value = "#000000"; // Default color: black
+    colorPicker.value = "#000000";
   
     colorPicker.addEventListener("input", (event) => {
       const target = event.target as HTMLInputElement;
       pen.currentColor = target.value;
       canvas.dispatchEvent(toolChanged);
-      // Set Pen mode
     });
 
     colorPicker.addEventListener("click", (event) => {
         const target = event.target as HTMLInputElement;
         pen.currentColor = target.value;
         canvas.dispatchEvent(toolChanged);
-        // Set Pen mode
       });
     // Insert the color picker into the DOM
     app.appendChild(colorPicker);
