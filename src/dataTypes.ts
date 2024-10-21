@@ -27,7 +27,7 @@ export class drag {
 
 export class stamp {
   emoji: string = "😂";
-  color: string = '#000000';
+  color: string = "#000000";
   size: number = 1;
   x: number = 0;
   y: number = 0;
@@ -41,5 +41,5 @@ export class stamp {
 
 export interface action {
   draw(ctx: CanvasRenderingContext2D): void;
-  color:string;
+  color: string;
 }

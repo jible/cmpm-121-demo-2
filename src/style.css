@@ -37,7 +37,7 @@ h1 {
 
 #app {
   max-width: 1280px;
-  margin: 0;            /* Ensure no centering occurs through margin */
+  margin: 0; /* Ensure no centering occurs through margin */
   padding: 0;
   text-align: left;
 }
@@ -94,9 +94,7 @@ button:focus-visible {
   }
 }
 
-
 .kaku-canvas {
-  
   background-color: #f9f9f9;
   border: 5px solid;
   border-color: #0e7224;
@@ -105,7 +103,6 @@ button:focus-visible {
   cursor: pointer;
   z-index: 5;
   flex-shrink: 0;
-
 }
 
 .title-container {
@@ -116,31 +113,29 @@ button:focus-visible {
   align-items: center;
   top: 0;
   background-color: rgb(156, 134, 100);
-  border-bottom: 5px solid #151b16 ;
+  border-bottom: 5px solid #151b16;
 }
 
-.tool-canvas-container{
-
+.tool-canvas-container {
   align-items: flex-start; /* To align items in the same row */
   justify-content: flex-start; /* Left-align items */
-  width:100%;
+  width: 100%;
   align-items: left;
   padding: 0px;
   display: flex;
-  flex-direction: row; 
+  flex-direction: row;
 }
 
-.control-container{
-  
+.control-container {
   width: 20%;
   align-items: left;
   padding: 0px;
   border: 5px solid rgb(37, 158, 107);
-  flex-direction: column; 
+  flex-direction: column;
   display: flex;
 }
 
-.nested-container{
+.nested-container {
   border-right: 5px solid rgb(53, 37, 158);
   border-left: 5px solid rgb(53, 37, 158);
   border-bottom: 5px solid rgb(53, 37, 158);
@@ -148,7 +143,7 @@ button:focus-visible {
   padding: 0px;
 }
 
-.tool-container{
+.tool-container {
   width: 20%;
   display: flex;
   justify-content: flex-start; /* Align items to the start (left) of the container */
@@ -156,6 +151,6 @@ button:focus-visible {
   flex-direction: column; /* Arrange items in a column, i.e., vertically */
   left: 0;
   margin: 0;
-  padding:0;
+  padding: 0;
   align-items: flex-start;
 }

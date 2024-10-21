@@ -68,23 +68,19 @@ const canvasUpdate: Event = new Event("drawing-changed");
 export const toolChanged: Event = new Event("tool-changed");
 // tool settings
 
-
 // --------------------------------------------------------------------------------------------------------
 // Imports
 // --------------------------------------------------------------------------------------------------------
-import { point, line, drag, action, stamp } from "./dataTypes.ts";
+import { action, drag, line, point, stamp } from "./dataTypes.ts";
 import { wash } from "./drawCommands.ts";
-import {
-  addThicknessSlider,
-  createButton,
-} from "./settingButtons.ts";
+import { addThicknessSlider, createButton } from "./settingButtons.ts";
 // --------------------------------------------------------------------------------------------------------
 // Setting up cursor and preview
 // --------------------------------------------------------------------------------------------------------
 
 const pen = {
-  currentColor : "#000000", // Default color
-  currentThickness : 1,
+  currentColor: "#000000", // Default color
+  currentThickness: 1,
   currentStamp: "🎲",
   previewActive: false,
   penDown: false,
@@ -96,30 +92,26 @@ const pen = {
   },
   draw(ctx: CanvasRenderingContext2D) {
     if (this.previewActive) {
-
-        
-
-
-        ctx.fillStyle = pen.currentColor;
+      ctx.fillStyle = pen.currentColor;
       if (currentAction instanceof drag) {
         ctx.font = `${this.currentThickness * 1.25}px monospace`;
 
         const metrics = ctx.measureText("*");
         const textWidth = metrics.width;
-        const textHeight =
-          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const textHeight = metrics.actualBoundingBoxAscent +
+          metrics.actualBoundingBoxDescent;
 
         // Calculate position to draw text centered on the mouse
         const x = this.x - textWidth / 2;
         const y = this.y + textHeight / 2;
 
-        ctx.fillText("*", x , y);
+        ctx.fillText("*", x, y);
       } else if (currentAction instanceof stamp) {
         ctx.font = `${7 * pen.currentThickness}px monospace`;
         const metrics = ctx.measureText(this.currentStamp);
         const textWidth = metrics.width;
-        const textHeight =
-          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const textHeight = metrics.actualBoundingBoxAscent +
+          metrics.actualBoundingBoxDescent;
 
         // Calculate position to draw text centered on the mouse
         const x = this.x - textWidth / 2;
@@ -165,8 +157,8 @@ function stopAction(e: MouseEvent) {
         ctx.font = `${7 * pen.currentThickness}px monospace`;
         const metrics = ctx.measureText(pen.currentStamp);
         const textWidth = metrics.width;
-        const textHeight =
-          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const textHeight = metrics.actualBoundingBoxAscent +
+          metrics.actualBoundingBoxDescent;
 
         const x = pen.x - textWidth / 2;
         const y = pen.y + textHeight / 2;
@@ -179,7 +171,7 @@ function stopAction(e: MouseEvent) {
         pen.currentStamp,
         pen.currentThickness,
         pen.x,
-        pen.y
+        pen.y,
       );
     }
     canvas.dispatchEvent(canvasUpdate);
@@ -244,8 +236,8 @@ canvas.addEventListener("mousemove", (e) => {
         ctx.font = `${7 * pen.currentThickness}px monospace`;
         const metrics = ctx.measureText(pen.currentStamp);
         const textWidth = metrics.width;
-        const textHeight =
-          metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+        const textHeight = metrics.actualBoundingBoxAscent +
+          metrics.actualBoundingBoxDescent;
 
         // Calculate position to draw text centered on the mouse
         const x = pen.x - textWidth / 2;
@@ -309,42 +301,34 @@ const _stampMode = createButton("Stamp Mode", controlContainer, () => {
   }
 });
 
-
 export function addColorPicker(app: HTMLElement) {
-    const colorPicker = document.createElement("input");
-    colorPicker.type = "color";
-    colorPicker.id = "colorPicker";
-    colorPicker.value = "#000000";
-  
-    colorPicker.addEventListener("input", (event) => {
-      const target = event.target as HTMLInputElement;
-      pen.currentColor = target.value;
-      canvas.dispatchEvent(toolChanged);
-    });
+  const colorPicker = document.createElement("input");
+  colorPicker.type = "color";
+  colorPicker.id = "colorPicker";
+  colorPicker.value = "#000000";
 
-    colorPicker.addEventListener("click", (event) => {
-        const target = event.target as HTMLInputElement;
-        pen.currentColor = target.value;
-        canvas.dispatchEvent(toolChanged);
-      });
-    // Insert the color picker into the DOM
-    app.appendChild(colorPicker);
-    return colorPicker;
-  }
+  colorPicker.addEventListener("input", (event) => {
+    const target = event.target as HTMLInputElement;
+    pen.currentColor = target.value;
+    canvas.dispatchEvent(toolChanged);
+  });
+
+  colorPicker.addEventListener("click", (event) => {
+    const target = event.target as HTMLInputElement;
+    pen.currentColor = target.value;
+    canvas.dispatchEvent(toolChanged);
+  });
+  // Insert the color picker into the DOM
+  app.appendChild(colorPicker);
+  return colorPicker;
+}
 
 const _colorAdder = createButton("new color", penModifiers, () => {
-    colorPickerButtons.push(addColorPicker(colorButtonsContainer));
-    
-  });
+  colorPickerButtons.push(addColorPicker(colorButtonsContainer));
+});
 const colorPickerButtons = [];
 
-
 const _startingColorPicker = addColorPicker(colorButtonsContainer);
-
-
-
-
-
 
 const thicknessSlider = addThicknessSlider(controlContainer);
 thicknessSlider.addEventListener("input", (event) => {
@@ -384,28 +368,24 @@ const _newstamp = createButton("new stamp", emojiControlContainer, () => {
   emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });
 
-
-
-
-
 const _exportButton = createButton("export", controlContainer, () => {
-    // Create a temporary canvas
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d")!;
-  
-    // Set the desired resolution
-    tempCanvas.width = 1024;
-    tempCanvas.height = 1024;
-  
-    // Draw the original canvas content onto the new canvas, scaling to fill the space
-    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-  
-    // Create an anchor element for downloading
-    const anchor = document.createElement("a");
-    anchor.href = tempCanvas.toDataURL("image/png");
-    anchor.download = "sketchpad_1024x1024.png";
-    // Append, click, and remove the anchor
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  });
+  // Create a temporary canvas
+  const tempCanvas = document.createElement("canvas");
+  const tempCtx = tempCanvas.getContext("2d")!;
+
+  // Set the desired resolution
+  tempCanvas.width = 1024;
+  tempCanvas.height = 1024;
+
+  // Draw the original canvas content onto the new canvas, scaling to fill the space
+  tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+  // Create an anchor element for downloading
+  const anchor = document.createElement("a");
+  anchor.href = tempCanvas.toDataURL("image/png");
+  anchor.download = "sketchpad_1024x1024.png";
+  // Append, click, and remove the anchor
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
+});

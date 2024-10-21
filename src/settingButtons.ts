@@ -20,7 +20,7 @@ export function addThicknessSlider(app: HTMLElement) {
 export function createButton(
   innerHTML: string,
   parent: HTMLElement,
-  onClick: () => void
+  onClick: () => void,
 ): HTMLButtonElement {
   // Create a new button element
   const button = document.createElement("button");

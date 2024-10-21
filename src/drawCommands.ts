@@ -8,7 +8,7 @@ export function drawLine(
   ctx: CanvasRenderingContext2D,
   stroke: line,
   color: string,
-  thickness: number
+  thickness: number,
 ) {
   ctx.beginPath();
   ctx.moveTo(stroke.start.x, stroke.start.y);
