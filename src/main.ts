@@ -290,13 +290,19 @@ const _undoButton = createButton("Undo", controlContainer, () => {
 const _redoButton = createButton("Redo", controlContainer, () => {
   redo();
 });
-const _penMode = createButton("Pen Mode", controlContainer, () => {
+const penMode = createButton("Pen Mode", controlContainer, () => {
   if (currentAction instanceof stamp) {
+    penMode.classList.toggle("active")
+    stampMode.classList.toggle("active")
     currentAction = new drag(pen.currentThickness, pen.currentColor);
   }
 });
-const _stampMode = createButton("Stamp Mode", controlContainer, () => {
+penMode.classList.add("active");
+
+const stampMode = createButton("Stamp Mode", controlContainer, () => {
   if (currentAction instanceof drag) {
+    stampMode.classList.toggle("active")
+    penMode.classList.toggle("active")
     currentAction = new stamp(pen.currentStamp, pen.currentThickness, 0, 0);
   }
 });
@@ -323,7 +329,7 @@ export function addColorPicker(app: HTMLElement) {
   return colorPicker;
 }
 
-const _colorAdder = createButton("new color", penModifiers, () => {
+const _colorAdder = createButton("New Color", penModifiers, () => {
   colorPickerButtons.push(addColorPicker(colorButtonsContainer));
 });
 const colorPickerButtons = [];
@@ -355,7 +361,7 @@ for (const emoji of startingEmojis) {
   emojiButtons.push(createEmojiButton(emoji, emojiContainer));
 }
 
-const _newstamp = createButton("new stamp", emojiControlContainer, () => {
+const _newstamp = createButton("New Stamp", emojiControlContainer, () => {
   const newEmoji = prompt("Choose a new stamp");
   if (!newEmoji) {
     return;
@@ -369,7 +375,7 @@ const _newstamp = createButton("new stamp", emojiControlContainer, () => {
 });
 
 const _exportButtonA = createButton(
-  "Export with transparent background",
+  "Export<br>(Transparent Background)",
   controlContainer,
   () => {
     // Create a temporary canvas
@@ -395,7 +401,7 @@ const _exportButtonA = createButton(
 );
 
 const _exportButtonB = createButton(
-  "Export with selected color background",
+  "Export<br>(Color Background)",
   controlContainer,
   () => {
     // Create a temporary canvas

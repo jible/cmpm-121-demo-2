@@ -92,6 +92,13 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+.active
+{
+  border-radius: 8px;
+  border: 3px solid transparent;
+  border-color: #0e7224;
+  background-color: rgb(156, 134, 100);
+}
 
 .kaku-canvas {
   background-color: #f9f9f9;

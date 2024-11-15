@@ -9,7 +9,7 @@ export function addThicknessSlider(app: HTMLElement) {
 
   // Label for slider
   const label = document.createElement("label");
-  label.innerHTML = "Line Thickness: ";
+  label.innerHTML = "<br>Line Thickness: ";
   label.appendChild(thicknessSlider);
 
   // Append slider and label to the DOM
