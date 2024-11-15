@@ -1,15 +1,3 @@
-import "./style.css";
-
-const APP_NAME = "Kaku";
-const app = document.querySelector<HTMLDivElement>("#app")!;
-
-document.title = APP_NAME;
-const titleContainer = document.createElement("div");
-titleContainer.className = "title-container";
-titleContainer.innerHTML = APP_NAME;
-app.appendChild(titleContainer);
-
-// Make containers:
 /* Containers heirachy:
 body{
   app{
@@ -28,33 +16,44 @@ body{
   }
 }
 */
-const canvasToolContainer = document.createElement("div");
-canvasToolContainer.className = "tool-canvas-container";
-app.appendChild(canvasToolContainer);
 
-const allToolContainer = document.createElement("div");
-allToolContainer.className = "control-container";
-canvasToolContainer.appendChild(allToolContainer);
+// --------------------------------------------------------------------------------------------------------
+// Imports
+// --------------------------------------------------------------------------------------------------------
 
-const controlContainer = document.createElement("div");
-controlContainer.className = "nested-container";
-allToolContainer.appendChild(controlContainer);
+import { action, drag, line, point, stamp } from "./dataTypes.ts";
+import { wash } from "./drawCommands.ts";
+import { addThicknessSlider, createButton } from "./settingButtons.ts";
 
-const emojiControlContainer = document.createElement("div");
-emojiControlContainer.className = "nested-container";
-allToolContainer.appendChild(emojiControlContainer);
+import "./style.css";
 
-const emojiContainer = document.createElement("div");
-emojiContainer.className = "nested-container";
-emojiControlContainer.appendChild(emojiContainer);
+// --------------------------------------------------------------------------------------------------------
+// Content
+// --------------------------------------------------------------------------------------------------------
 
-const penModifiers = document.createElement("div");
-penModifiers.className = "nested-container";
-allToolContainer.appendChild(penModifiers);
+const APP_NAME = "Kaku";
+const app = document.querySelector<HTMLDivElement>("#app")!;
 
-const colorButtonsContainer = document.createElement("div");
-colorButtonsContainer.className = "nested-container";
-penModifiers.appendChild(colorButtonsContainer);
+document.title = APP_NAME;
+const titleContainer = document.createElement("div");
+titleContainer.className = "title-container";
+titleContainer.innerHTML = APP_NAME;
+app.appendChild(titleContainer);
+
+const canvasToolContainer = createBaseContent("tool-canvas-container", app)
+const allToolContainer = createBaseContent("control-container", canvasToolContainer)
+const controlContainer = createBaseContent("nested-container", allToolContainer)
+const emojiControlContainer = createBaseContent("nested-container", allToolContainer)
+const emojiContainer = createBaseContent("nested-container", emojiControlContainer)
+const penModifiers = createBaseContent("nested-container", allToolContainer)
+const colorButtonsContainer = createBaseContent("nested-container", penModifiers)
+
+function createBaseContent(className: string, container: HTMLDivElement) {
+  const element = document.createElement("div");
+  element.className = className;
+  container.appendChild(element)
+  return element
+}
 
 // Create canvas
 const canvas = document.createElement("canvas");
@@ -66,14 +65,7 @@ const ctx = canvas.getContext("2d");
 // Events
 const canvasUpdate: Event = new Event("drawing-changed");
 export const toolChanged: Event = new Event("tool-changed");
-// tool settings
 
-// --------------------------------------------------------------------------------------------------------
-// Imports
-// --------------------------------------------------------------------------------------------------------
-import { action, drag, line, point, stamp } from "./dataTypes.ts";
-import { wash } from "./drawCommands.ts";
-import { addThicknessSlider, createButton } from "./settingButtons.ts";
 // --------------------------------------------------------------------------------------------------------
 // Setting up cursor and preview
 // --------------------------------------------------------------------------------------------------------
@@ -131,9 +123,11 @@ function drawCanvas(): void {
     pen.draw(ctx);
   }
 }
+
 // --------------------------------------------------------------------------------------------------------
 // Establishing arrays for storing lines
 // --------------------------------------------------------------------------------------------------------
+
 let actions: action[] = [];
 let undoneActions: action[] = [];
 let currentAction: action = new drag(pen.currentThickness, pen.currentColor);
@@ -141,6 +135,7 @@ let currentAction: action = new drag(pen.currentThickness, pen.currentColor);
 // --------------------------------------------------------------------------------------------------------
 // Triggers for drawing and updating canvas
 // --------------------------------------------------------------------------------------------------------
+
 function stopAction(e: MouseEvent) {
   if (pen.penDown) {
     pen.penDown = false;
@@ -259,37 +254,32 @@ canvas.addEventListener("drawing-changed", function () {
 // --------------------------------------------------------------------------------------------------------
 // Buttons and associated functions
 // --------------------------------------------------------------------------------------------------------
-function clear(): void {
+
+createButton("Clear", controlContainer, () => {
   currentAction = new drag(pen.currentThickness, pen.currentColor);
   if (ctx) {
     wash(canvas, ctx);
   }
   actions = [];
   undoneActions = [];
-}
-function undo(): void {
+});
+
+createButton("Undo", controlContainer, () => {
   const undoneDrag: action | undefined = actions.pop();
   if (undoneDrag) {
     undoneActions.push(undoneDrag);
   }
   canvas.dispatchEvent(canvasUpdate);
-}
-function redo(): void {
+});
+
+createButton("Redo", controlContainer, () => {
   const redoneDrag: action | undefined = undoneActions.pop();
   if (redoneDrag) {
     actions.push(redoneDrag);
   }
   canvas.dispatchEvent(canvasUpdate);
-}
-const _clearButton = createButton("Clear", controlContainer, () => {
-  clear();
 });
-const _undoButton = createButton("Undo", controlContainer, () => {
-  undo();
-});
-const _redoButton = createButton("Redo", controlContainer, () => {
-  redo();
-});
+
 const penMode = createButton("Pen Mode", controlContainer, () => {
   if (currentAction instanceof stamp) {
     penMode.classList.toggle("active")
@@ -329,12 +319,12 @@ export function addColorPicker(app: HTMLElement) {
   return colorPicker;
 }
 
-const _colorAdder = createButton("New Color", penModifiers, () => {
+createButton("New Color", penModifiers, () => {
   colorPickerButtons.push(addColorPicker(colorButtonsContainer));
 });
 const colorPickerButtons = [];
 
-const _startingColorPicker = addColorPicker(colorButtonsContainer);
+addColorPicker(colorButtonsContainer);
 
 const thicknessSlider = addThicknessSlider(controlContainer);
 thicknessSlider.addEventListener("input", (event) => {
@@ -361,7 +351,7 @@ for (const emoji of startingEmojis) {
   emojiButtons.push(createEmojiButton(emoji, emojiContainer));
 }
 
-const _newstamp = createButton("New Stamp", emojiControlContainer, () => {
+createButton("New Stamp", emojiControlContainer, () => {
   const newEmoji = prompt("Choose a new stamp");
   if (!newEmoji) {
     return;
@@ -374,57 +364,38 @@ const _newstamp = createButton("New Stamp", emojiControlContainer, () => {
   emojiButtons.push(createEmojiButton(newEmoji, emojiContainer));
 });
 
-const _exportButtonA = createButton(
-  "Export<br>(Transparent Background)",
-  controlContainer,
-  () => {
-    // Create a temporary canvas
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d")!;
+createExportButton("Export with transparent background", true);
+createExportButton("Export with selected color background", false);
 
-    // Set the desired resolution
-    tempCanvas.width = 1024;
-    tempCanvas.height = 1024;
+function createExportButton(name: string, transparent: boolean) {
+  createButton(
+    name,
+    controlContainer,
+    () => {
+      // Create a temporary canvas
+      const tempCanvas = document.createElement("canvas");
+      const tempCtx = tempCanvas.getContext("2d")!;
 
-    // Draw the original canvas content onto the new canvas, scaling to fill the space
-    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+      // Set the desired resolution
+      tempCanvas.width = 1024;
+      tempCanvas.height = 1024;
 
-    // Create an anchor element for downloading
-    const anchor = document.createElement("a");
-    anchor.href = tempCanvas.toDataURL("image/png");
-    anchor.download = "sketchpad_1024x1024.png";
-    // Append, click, and remove the anchor
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  },
-);
+      if (ctx && !transparent) {
+        ctx.fillStyle = pen.currentColor; // Set the fill color to your desired background color
+        ctx.fillRect(0, 0, canvas.width, canvas.height); // Covers the entire canvas area
+      }
 
-const _exportButtonB = createButton(
-  "Export<br>(Color Background)",
-  controlContainer,
-  () => {
-    // Create a temporary canvas
-    const tempCanvas = document.createElement("canvas");
-    const tempCtx = tempCanvas.getContext("2d")!;
+      // Draw the original canvas content onto the new canvas, scaling to fill the space
+      tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
 
-    // Set the desired resolution
-    tempCanvas.width = 1024;
-    tempCanvas.height = 1024;
-    if (ctx) {
-      ctx.fillStyle = pen.currentColor; // Set the fill color to your desired background color
-      ctx.fillRect(0, 0, canvas.width, canvas.height); // Covers the entire canvas area
-    }
-    // Draw the original canvas content onto the new canvas, scaling to fill the space
-    tempCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-
-    // Create an anchor element for downloading
-    const anchor = document.createElement("a");
-    anchor.href = tempCanvas.toDataURL("image/png");
-    anchor.download = "sketchpad_1024x1024.png";
-    // Append, click, and remove the anchor
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-  },
-);
+      // Create an anchor element for downloading
+      const anchor = document.createElement("a");
+      anchor.href = tempCanvas.toDataURL("image/png");
+      anchor.download = "sketchpad_1024x1024.png";
+      // Append, click, and remove the anchor
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+    },
+  );
+}
